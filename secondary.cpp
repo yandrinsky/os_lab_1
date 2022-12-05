@@ -112,7 +112,7 @@ void message(
     cout << "Path to original file: " << input << endl;
     cout << "Path to copied file: " << output << endl;
     cout << "Number of threads: " << numberOfThreads << endl;
-    cout << "block size: " << block << endl;
+    cout << "Block size: " << block << endl;
     cout << "File size low: " << low << endl;
     cout << "File size high: " << high << endl;
     cout << "File size: " << sizeFile << endl;
@@ -245,17 +245,22 @@ void asynchronousFileCopy(
         curSize += (DWORD64) (blockSize * numberOfThreads);
         test_old = test;
         test = curSize / (sizeFileOnDisk / 100);
-        if (test != test_old) cout << endl << test << "%";
+
+        if (test != test_old){
+            cout << endl << test << "%";
+        }
     } while (curSize < sizeFileOnDisk);
 
     int finish = GetTickCount();
     counterInfo = 0;
 
     long long_high = (long) high;
+
     SetFilePointer(handleOutputint, sizeFile, &long_high, FILE_BEGIN);
     SetEndOfFile(handleOutputint);
     CloseHandle(handleInput);
     CloseHandle(handleOutputint);
+
     message(input, output, numberOfThreads, blockSize, high, low, sizeFile, sizeFileOnDisk, finish - start);
 }
 
@@ -264,14 +269,16 @@ void informationInput() {
     string input, output;
     cout << endl << "Enter file path: ";
     cin >> input;
-    cout << endl << "Enter copy file: path";
+    cout << endl << "Enter copy file path: ";
     cin >> output;
     cout << endl << "Enter number of threads: ";
     cin >> numberOfThreads;
-    cout << endl << "Enter the value by which the cluster size will be multiplied: ";
+    cout << endl << "Enter cluster size multiplied: ";
     cin >> factorCluster;
+
     system("cls");
-    cout << endl << "Copying started...";
+
+    cout << endl << "Copying started";
     createFile(input, output, factorCluster, numberOfThreads);
 }
 
@@ -287,7 +294,7 @@ bool menu() {
 
     if (choice) {
         informationInput();
-        menu()
+        menu();
     };
 
     return false;

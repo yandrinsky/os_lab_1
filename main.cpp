@@ -53,7 +53,6 @@ void setFileTimeDialog();
 
 void continueOnKeyEnter();
 
-//константы описывающие системные флаги диска
 DWORD ConstSystemFlag[26] =
         {
                 FILE_CASE_SENSITIVE_SEARCH,
@@ -84,11 +83,10 @@ DWORD ConstSystemFlag[26] =
                 536870912,
         };
 
-//типы системных флагов диска
 string SystemFlags[26] =
         {
-                "FILE_CASE_SENSITIVE_SEARCH - The specified volume supports case-sensitive file names.",
-                "FILE_CASE_PRESERVED_NAMES - The specified volume supports preserved case of file names when it places a name on disk. ",
+                "FILE_CASE_SENSITIVE_SEARCH - File system supports case-sensitive file names.",
+                "FILE_CASE_PRESERVED_NAMES - File system preserves the case of file names when it stores the name on disk.",
                 "FILE_UNICODE_ON_DISK - The specified volume supports Unicode in file names as they appear on disk. ",
                 "FILE_FILE_PERSISTENT_ACLS - The specified volume preserves and enforces access control lists (ACL).\n   For example, the NTFS file system preserves and enforces ACLs, and the FAT file system does not. ",
                 "FILE_FILE_COMPRESSION - The specified volume supports file-based compression. ",
@@ -100,7 +98,7 @@ string SystemFlags[26] =
                 "FILE_SUPPORTS_OBJECT_IDS - The specified volume supports object identifiers.",
                 "FILE_SUPPORTS_ENCRYPTION - The specified volume supports the Encrypted File System (EFS). For more information, see File Encryption. ",
                 "FILE_NAMED_STREAMS - The specified volume supports named streams. ",
-                "FILE_READ_ONLY_VOLUME - The specified volume is read-only. ",
+                "FILE_READ_ONLY_VOLUME - Specified volume is read-only. ",
                 "FILE_SEQUENTIAL_WRITE_ONCE - The specified volume supports a single sequential write. ",
                 "FILE_SUPPORTS_TRANSACTIONS - The specified volume supports transactions. For more information, see About KTM. ",
                 "FILE_SUPPORTS_HARD_LINKS - The specified volume supports hard links. For more information, see Hard Links and Junctions. ",
@@ -149,9 +147,9 @@ int getDisksAmount() {
 string *getSystemDisksList() {
     string allDisk[] = {"A:\\", "B:\\", "C:\\", "D:\\", "E:\\",
                         "F:\\", "G:\\", "H:\\", "I:\\", "J:\\", "K:\\",
-                        "L:\\","M:\\", "N:\\", "O:\\", "P:\\", "Q:\\",
+                        "L:\\", "M:\\", "N:\\", "O:\\", "P:\\", "Q:\\",
                         "R:\\", "S:\\", "T:\\", "U:\\", "V:\\", "W:\\",
-                        "X:\\","Y:\\", "Z:\\"};
+                        "X:\\", "Y:\\", "Z:\\"};
 
     int numbersDisk = getDisksAmount();
     string *disksInSystem = new string[numbersDisk];
@@ -241,23 +239,17 @@ void logDiskInfo(string *disk = new string[1]) {
             Disk,
             NameBuffer, sizeof(NameBuffer),
             &VSNumber, &MCLength,
-            &FileSF,SysNameBuffer,sizeof(SysNameBuffer));
+            &FileSF, SysNameBuffer, sizeof(SysNameBuffer));
 
     GetDiskFreeSpaceA(Disk, &SectCluster,
-                      &ByteSec,&NumFreeCluster, &TotalNumCluster);
+                      &ByteSec, &NumFreeCluster, &TotalNumCluster);
 
     cout << convertApiDriveType(GetDriveTypeA(Disk)) << endl;
 
-    cout << endl << "Volume Name Buffer: " << NameBuffer << endl;
-    cout << "Volume Serial Number: " << VSNumber << endl;
-    cout << "Maximum Component Length: " << MCLength << endl;
-    cout << "File System Flags: " << FileSF << endl << endl;
-
-    for (int i = 0; i < 26; i++) {
-        if (ConstSystemFlag[i] & FileSF) {
-            cout << ConstSystemFlag[i] << "  " << SystemFlags[i] << endl;
-        }
-    }
+    cout << endl << "Volume name buffer: " << NameBuffer << endl;
+    cout << "Volume serial number: " << VSNumber << endl;
+    cout << "Maximum component length: " << MCLength << endl << endl;
+    cout << "File system flags: " << FileSF << endl << endl;
 
     cout << endl << "File System Name Buffer: " << SysNameBuffer << endl << endl;
     cout << "Sectors Per Cluster: " << SectCluster << endl;
@@ -268,8 +260,8 @@ void logDiskInfo(string *disk = new string[1]) {
     int FreeSpace = NumFreeCluster / 1024 * ByteSec / 1024 * SectCluster / 1024;
     int TotalSpace = TotalNumCluster / 1024 * ByteSec / 1024 * SectCluster / 1024;
 
-    cout << "Free space in disk: " << FreeSpace << " gigabytes" << endl;
-    cout << "Total space in disk: " << TotalSpace << " gigabytes" << endl;
+    cout << "Free space in disk: " << FreeSpace << " GB" << endl;
+    cout << "Total space in disk: " << TotalSpace << " GB" << endl;
 }
 
 void createOrRemoveDirectoryDialog() {
@@ -366,7 +358,7 @@ void copyFileDialog() {
 
     string *userPath = new string[2];
 
-    cout << "Pld file path: ";
+    cout << "Old file path: ";
     cin >> userPath[0];
 
     LPCSTR directPath = userPath[0].c_str();
@@ -530,7 +522,8 @@ void convertAndLogApiFileAttribute(int type) {
             break;
         case 524288:
             cout << "FILE_ATTRIBUTE_PINNED" << endl << endl;
-            cout << "This attribute indicates user intent that the file or directory should be kept fully present locally"
+            cout
+                    << "This attribute indicates user intent that the file or directory should be kept fully present locally"
                     << endl;
             cout << "even when not being actively accessed." << endl;
             break;
@@ -582,7 +575,7 @@ void logPossibleFileAttributes() {
 
 int convertUserFileAttributeToApi(int type) {
     int key;
-    
+
     switch (type) {
         case 1:
             key = 1;
@@ -647,7 +640,7 @@ void setFileAttributesDialog() {
 
     cout << "Choose attribute:" << endl;
     cin >> chooseParam;
-    
+
     DWORD checkSet = SetFileAttributesA(DirectPath, convertUserFileAttributeToApi(chooseParam));
 
     if (checkSet) {
@@ -665,24 +658,9 @@ void logSystemLocOfFile(FILETIME fileTime) {
     FileTimeToSystemTime(&fileTime, &lpSystemTime);
     SystemTimeToTzSpecificLocalTime(NULL, &lpSystemTime, &LocalSystemTime);
 
-    cout << endl;
-    cout << "       Year: " << LocalSystemTime.wYear << endl;
-    cout << "       Month: " << LocalSystemTime.wMonth << endl;
-    cout << "       Day of week: " << LocalSystemTime.wDayOfWeek << endl;
-    cout << "       Day: " << LocalSystemTime.wDay << endl;
-    cout << "       Hour: " << LocalSystemTime.wHour << endl;
-    cout << "       Minute: " << LocalSystemTime.wMinute << endl;
-    cout << "       Second: " << LocalSystemTime.wSecond << endl;
-    cout << "       Millisecond: " << LocalSystemTime.wMilliseconds << endl;
-    cout << endl;
-}
-
-FILETIME convertSysToFile(SYSTEMTIME SysTime) {
-    FILETIME FileTime;
-    BOOL time = SystemTimeToFileTime(&SysTime, &FileTime);
-    cout << time;
-
-    return FileTime;
+    cout << LocalSystemTime.wDay << "-" << LocalSystemTime.wMonth << "-"
+         << LocalSystemTime.wYear << " " << LocalSystemTime.wHour << "-" << LocalSystemTime.wMinute << "-"
+         << LocalSystemTime.wSecond << "-" << LocalSystemTime.wMilliseconds << endl;
 }
 
 void logFileInformationByHandleDialog() {
@@ -708,15 +686,15 @@ void logFileInformationByHandleDialog() {
     if (isGotInfo) {
         cout << endl << "Information by handle: " << endl;
         cout << "FileAttributes: " << lpFileInfo.dwFileAttributes << endl;
-        cout << "CreationTime: " << endl;
+        cout << "CreationTime: ";
 
         logSystemLocOfFile(lpFileInfo.ftCreationTime);
 
-        cout << "LastAccessTime: " << endl;
+        cout << "LastAccessTime: ";
 
         logSystemLocOfFile(lpFileInfo.ftLastAccessTime);
 
-        cout << "LastWriteTime: " << endl;
+        cout << "LastWriteTime: ";
 
         logSystemLocOfFile(lpFileInfo.ftLastWriteTime);
 
@@ -743,6 +721,9 @@ void setFileTimeDialog() {
     SYSTEMTIME NewCreateTime;
     SYSTEMTIME NewAccessTime;
     SYSTEMTIME NewWriteTime;
+    FILETIME FileCreateTime;
+    FILETIME FileAccessTime;
+    FILETIME FileWriteTime;
 
     string *userPath = new string[1];
 
@@ -761,7 +742,7 @@ void setFileTimeDialog() {
         >> LocalCreateTime.wMinute >> LocalCreateTime.wSecond >> LocalCreateTime.wMilliseconds;
 
     BOOL timeCreation = TzSpecificLocalTimeToSystemTime(NULL, &LocalCreateTime, &NewCreateTime);
-    FILETIME FileCreateTime = convertSysToFile(NewCreateTime);
+    SystemTimeToFileTime(&NewCreateTime, &FileCreateTime);
 
     cout << endl
          << "Enter access time (day, month, year, hour, minute, second, millisecond). Separate with space."
@@ -770,7 +751,7 @@ void setFileTimeDialog() {
         >> LocalAccessTime.wMinute >> LocalAccessTime.wSecond >> LocalAccessTime.wMilliseconds;
 
     BOOL timeAccess = TzSpecificLocalTimeToSystemTime(NULL, &LocalAccessTime, &NewAccessTime);
-    FILETIME FileAccessTime = convertSysToFile(NewAccessTime);
+    SystemTimeToFileTime(&NewAccessTime, &FileAccessTime);
 
     cout << endl
          << "Enter write time (day, month, year, hour, minute, second, millisecond). Separate with space."
@@ -779,10 +760,9 @@ void setFileTimeDialog() {
         >> LocalWriteTime.wMinute >> LocalWriteTime.wSecond >> LocalWriteTime.wMilliseconds;
 
     BOOL timeWrite = TzSpecificLocalTimeToSystemTime(NULL, &LocalWriteTime, &NewWriteTime);
-    FILETIME FileWriteTime = convertSysToFile(NewWriteTime);
+    SystemTimeToFileTime(&NewWriteTime, &FileWriteTime);
 
     BOOL finalSetFileTime = SetFileTime(file, &FileCreateTime, &FileAccessTime, &FileWriteTime);
-    cout << timeCreation << timeAccess << timeWrite << finalSetFileTime;
 
     continueOnKeyEnter();
 }
