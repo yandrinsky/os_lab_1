@@ -2,6 +2,7 @@
 #include <fileapi.h>
 #include <windows.h>
 #include <timezoneapi.h>
+#include <map>
 
 using namespace std;
 
@@ -222,6 +223,43 @@ string convertApiDriveType(int type) {
     }
 }
 
+string convertApiFileSystemFlags(DWORD fsFlags) {
+    map<unsigned long, string> fsFlagsConstants = {
+            {FILE_CASE_SENSITIVE_SEARCH,        "FILE_CASE_SENSITIVE_SEARCH"},
+            {FILE_CASE_PRESERVED_NAMES,         "FILE_CASE_P RESERVED_NAMES"},
+            {FILE_UNICODE_ON_DISK,              "FILE_UNICODE_ON_DISK"},
+            {FILE_PERSISTENT_ACLS,              "FILE_PERSISTENT_ACLS"},
+            {FILE_FILE_COMPRESSION,             "FILE_FILE_COMPRESSION"},
+            {FILE_VOLUME_QUOTAS,                "FILE_VOLUME_QUOTAS"},
+            {FILE_SUPPORTS_SPARSE_FILES,        "FILE_SUPPORTS_SPARSE_FILES"},
+            {FILE_SUPPORTS_REPARSE_POINTS,      "FILE_SUPPORTS_REPARSE_POINTS"},
+            {FILE_NAMED_STREAMS,                "FILE_NAMED_STREAMS"},
+            {FILE_VOLUME_IS_COMPRESSED,         "FILE_VOLUME_IS_COMPRESSED"},
+            {FILE_SUPPORTS_OBJECT_IDS,          "FILE_SUPPORTS_OBJECT_IDS"},
+            {FILE_SUPPORTS_ENCRYPTION,          "FILE_SUPPORTS_ENCRYPTION"},
+            {FILE_READ_ONLY_VOLUME,             "FILE_READ_ONLY_VOLUME"},
+            {FILE_SEQUENTIAL_WRITE_ONCE,        "FILE_SEQUENTIAL_WRITE_ONCE"},
+            {FILE_SUPPORTS_TRANSACTIONS,        "FILE_SUPPORTS_TRANSACTIONS"},
+            {FILE_SUPPORTS_HARD_LINKS,          "FILE_SUPPORTS_HARD_LINKS"},
+            {FILE_SUPPORTS_EXTENDED_ATTRIBUTES, "FILE_SUPPORTS_EXTENDED_ATTRIBUTES"},
+            {FILE_SUPPORTS_OPEN_BY_FILE_ID,     "FILE_SUPPORTS_OPEN_BY_FILE_ID"},
+            {FILE_SUPPORTS_USN_JOURNAL,         "FILE_SUPPORTS_USN_JOURNAL"},
+            {FILE_SUPPORTS_INTEGRITY_STREAMS,   "FILE_SUPPORTS_INTEGRITY_STREAMS"}
+    };
+
+    string *flags = new string[1];
+
+    for (auto const &flag: fsFlagsConstants) {
+        if (fsFlags & flag.first) {
+            *flags += flag.second + "\n";
+        }
+    }
+
+
+    return *flags;
+
+}
+
 void logDiskInfo(string *disk = new string[1]) {
     char NameBuffer[MAX_PATH];
     char SysNameBuffer[MAX_PATH];
@@ -237,19 +275,30 @@ void logDiskInfo(string *disk = new string[1]) {
 
     GetVolumeInformationA(
             Disk,
-            NameBuffer, sizeof(NameBuffer),
-            &VSNumber, &MCLength,
-            &FileSF, SysNameBuffer, sizeof(SysNameBuffer));
+            NameBuffer,
+            sizeof(NameBuffer),
+            &VSNumber,
+            &MCLength,
+            &FileSF,
+            SysNameBuffer,
+            sizeof(SysNameBuffer)
+    );
 
-    GetDiskFreeSpaceA(Disk, &SectCluster,
-                      &ByteSec, &NumFreeCluster, &TotalNumCluster);
+    GetDiskFreeSpaceA(
+            Disk,
+            &SectCluster,
+            &ByteSec,
+            &NumFreeCluster,
+            &TotalNumCluster
+    );
 
     cout << convertApiDriveType(GetDriveTypeA(Disk)) << endl;
 
     cout << endl << "Volume name buffer: " << NameBuffer << endl;
     cout << "Volume serial number: " << VSNumber << endl;
     cout << "Maximum component length: " << MCLength << endl << endl;
-    cout << "File system flags: " << FileSF << endl << endl;
+    cout << "File system flags: " << endl;
+    cout << convertApiFileSystemFlags(FileSF) << endl;
 
     cout << endl << "File System Name Buffer: " << SysNameBuffer << endl << endl;
     cout << "Sectors Per Cluster: " << SectCluster << endl;
@@ -839,3 +888,5 @@ bool menu() {
 int main() {
     menu();
 }
+
+
